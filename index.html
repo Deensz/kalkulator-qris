@@ -1,8 +1,14 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#000000">
     <title>Kalkulator QRIS</title>
     <!-- 
         App Calculator Single File
@@ -37,7 +43,8 @@
             min-height: 100vh;
             min-height: 100dvh;
             overflow: hidden;
-            touch-action: none; /* Prevent zoom/scroll on mobile */
+            touch-action: none;
+            /* Prevent zoom/scroll on mobile */
         }
 
         #calculator {
@@ -116,7 +123,7 @@
             color: #fff;
             font-size: 2.5rem;
         }
-        
+
         button.btn-orange:active {
             filter: brightness(1.2);
             background-color: #fca823;
@@ -185,10 +192,15 @@
             display: flex;
             animation: fadeIn 0.3s ease;
         }
-        
+
         @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
         }
 
         #qris-amount {
@@ -232,19 +244,43 @@
 
         /* Responsive Adjustments */
         @media (max-height: 700px) {
-            #calculator { gap: 10px; }
-            .keypad { gap: 10px; }
-            button.calc-btn { font-size: 1.8rem; }
-            #display { font-size: 4rem; }
-            .qris-btn-container { padding: 10px 20px; }
+            #calculator {
+                gap: 10px;
+            }
+
+            .keypad {
+                gap: 10px;
+            }
+
+            button.calc-btn {
+                font-size: 1.8rem;
+            }
+
+            #display {
+                font-size: 4rem;
+            }
+
+            .qris-btn-container {
+                padding: 10px 20px;
+            }
         }
+
         @media (max-width: 380px) {
-            button.calc-btn { font-size: 1.8rem; }
-            button.btn-orange { font-size: 2.2rem; }
-            #display { font-size: 4rem; }
+            button.calc-btn {
+                font-size: 1.8rem;
+            }
+
+            button.btn-orange {
+                font-size: 2.2rem;
+            }
+
+            #display {
+                font-size: 4rem;
+            }
         }
     </style>
 </head>
+
 <body>
 
     <div id="calculator">
@@ -256,7 +292,12 @@
         <div class="keypad">
             <!-- Sesuai gambar: Backspace, AC, %, ÷ -->
             <button class="calc-btn btn-light" onclick="handleBackspace()">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path><line x1="18" y1="9" x2="12" y2="15"></line><line x1="12" y1="9" x2="18" y2="15"></line></svg>
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path>
+                    <line x1="18" y1="9" x2="12" y2="15"></line>
+                    <line x1="12" y1="9" x2="18" y2="15"></line>
+                </svg>
             </button>
             <button class="calc-btn btn-light" onclick="clearAll()" id="btn-clear">AC</button>
             <button class="calc-btn btn-light" onclick="inputPercentage()">%</button>
@@ -299,13 +340,15 @@
         <div id="qris-amount">Rp 0</div>
         <div id="qris-image-container">
             <!-- GANTI src INI DENGAN PATH / URL GAMBAR QRIS ASLI NANTINYA -->
-            <img id="qris-image" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgMjAwIDIwMCI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI2ZmZiIvPjxwYXRoIGQ9Ik0yMCAyMGg1MHY1MEgyMHptMTAgMTBoMzB2MzBIMzB6TTEzMCAyMGg1MHY1MGgtNTB6bTEwIDEwaDMwdjMwSDE0MHpNMjAgMTMwaDUwdjUwSDIwem0xMCAxMGgzMHYzMEgzMHpNODAgMjBoNDB2MjBMODB6TTkwIDUwaDMwdjIwSDkwek04MCA5MGg0MHY0MEg4MHptMTAgMTBoMjB2MjBIMTB6TTEzMCA5MGg1MHYyMGgtNTB6TTEzMCAxMzBoMjB2MjBoLTIwek0xNjAgMTUwaDIwdjIwaC0yMHpNMzAgOTBoMzB2MjBIMzB6IiBmaWxsPSIjMDAwIi8+PHRleHQgeD0iMTAwIiB5PSIxMDUiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIiBmb250LXNpemU9IjEyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjMzMzIj5HQU1CQVIgUVJJUzwvdGV4dD48dGV4dCB4PSIxMDAiIHk9IjEyMCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiMzMzMiPkxBTVBJUktBTjwvdGV4dD48L3N2Zz4=" alt="QRIS Code">
+            <img id="qris-image"
+                src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgMjAwIDIwMCI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI2ZmZiIvPjxwYXRoIGQ9Ik0yMCAyMGg1MHY1MEgyMHptMTAgMTBoMzB2MzBIMzB6TTEzMCAyMGg1MHY1MGgtNTB6bTEwIDEwaDMwdjMwSDE0MHpNMjAgMTMwaDUwdjUwSDIwem0xMCAxMGgzMHYzMEgzMHpNODAgMjBoNDB2MjBMODB6TTkwIDUwaDMwdjIwSDkwek04MCA5MGg0MHY0MEg4MHptMTAgMTBoMjB2MjBIMTB6TTEzMCA5MGg1MHYyMGgtNTB6TTEzMCAxMzBoMjB2MjBoLTIwek0xNjAgMTUwaDIwdjIwaC0yMHpNMzAgOTBoMzB2MjBIMzB6IiBmaWxsPSIjMDAwIi8+PHRleHQgeD0iMTAwIiB5PSIxMDUiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIiBmb250LXNpemU9IjEyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjMzMzIj5HQU1CQVIgUVJJUzwvdGV4dD48dGV4dCB4PSIxMDAiIHk9IjEyMCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiMzMzMiPkxBTVBJUktBTjwvdGV4dD48L3N2Zz4="
+                alt="QRIS Code">
         </div>
         <button id="close-modal" onclick="hideQRIS()">Tutup</button>
     </div>
 
     <script>
-        let expr = '0'; 
+        let expr = '0';
         let historyString = '';
         let resultShown = false;
         let isError = false;
@@ -326,7 +369,7 @@
                 .replace(/\//g, '÷')
                 .replace(/-/g, '−')
                 .replace(/\./g, ',');
-            
+
             if (displayStr.length > 15) {
                 displayEl.style.fontSize = '2rem';
             } else if (displayStr.length > 10) {
@@ -338,7 +381,7 @@
             }
 
             displayEl.innerText = displayStr;
-            
+
             let histStr = historyString
                 .replace(/\*/g, '×')
                 .replace(/\//g, '÷')
@@ -359,7 +402,7 @@
                 if (expr === '0') {
                     expr = num;
                 } else {
-                    if (expr.replace(/[^0-9]/g,"").length < 25) {
+                    if (expr.replace(/[^0-9]/g, "").length < 25) {
                         expr += num;
                     }
                 }
@@ -423,15 +466,15 @@
                 updateDisplay();
             }
         }
-        
+
         function inputPercentage() {
-             if (isError) return;
-             try {
-                 let result = new Function('return ' + expr)();
-                 expr = (result / 100).toString();
-                 resultShown = true;
-                 updateDisplay();
-             } catch (e) {}
+            if (isError) return;
+            try {
+                let result = new Function('return ' + expr)();
+                expr = (result / 100).toString();
+                resultShown = true;
+                updateDisplay();
+            } catch (e) { }
         }
 
         function inputOperator(op) {
@@ -442,7 +485,7 @@
                 resultShown = false;
             } else {
                 let lastChar = expr.slice(-1);
-                if (['+','-','*','/'].includes(lastChar)) {
+                if (['+', '-', '*', '/'].includes(lastChar)) {
                     expr = expr.slice(0, -1) + op;
                 } else {
                     expr += op;
@@ -453,16 +496,16 @@
 
         function calculate() {
             if (expr === '' || isError) return;
-            
+
             let fullExpr = expr;
 
             try {
-                if (['+','-','*','/'].includes(fullExpr.slice(-1))) {
+                if (['+', '-', '*', '/'].includes(fullExpr.slice(-1))) {
                     fullExpr = fullExpr.slice(0, -1);
                 }
-                
+
                 let result = new Function('return ' + fullExpr)();
-                
+
                 if (!isFinite(result) || isNaN(result)) {
                     isError = true;
                     updateDisplay();
@@ -470,13 +513,13 @@
                 }
 
                 result = Math.round(result * 10000000000) / 10000000000;
-                
-                historyString = fullExpr + '='; 
+
+                historyString = fullExpr + '=';
                 expr = result.toString();
                 resultShown = true;
                 updateDisplay();
-                
-            } catch(e) {
+
+            } catch (e) {
                 isError = true;
                 updateDisplay();
             }
@@ -487,10 +530,10 @@
         const qrisAmountEl = document.getElementById('qris-amount');
 
         function formatRupiah(number) {
-            return new Intl.NumberFormat('id-ID', { 
-                style: 'currency', 
-                currency: 'IDR', 
-                minimumFractionDigits: 0 
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0
             }).format(number);
         }
 
@@ -498,16 +541,16 @@
             let qrisStatis = "00020101021126650013ID.CO.BCA.WWW011893600014000281005202150008850028100520303UMI51440014ID.CO.QRIS.WWW0215ID10253738323320303UMI5204581453033605802ID5912JAJANAN RATU6006MALANG61056513762070703A0163043788";
             let qrisTanpaCrc = qrisStatis.slice(0, -4);
             let qrisDinamis = qrisTanpaCrc.replace("010211", "010212");
-            
+
             let nominalStr = nominal.toString();
             let panjangNominalStr = nominalStr.length.toString().padStart(2, '0');
             let tag54 = "54" + panjangNominalStr + nominalStr;
-            
+
             let posisi58 = qrisDinamis.indexOf("5802ID");
             if (posisi58 !== -1) {
                 qrisDinamis = qrisDinamis.slice(0, posisi58) + tag54 + qrisDinamis.slice(posisi58);
             }
-            
+
             let crc = 0xFFFF;
             for (let c = 0; c < qrisDinamis.length; c++) {
                 crc ^= qrisDinamis.charCodeAt(c) << 8;
@@ -527,7 +570,7 @@
         function showQRIS() {
             if (isError) return;
 
-            if(!resultShown) {
+            if (!resultShown) {
                 calculate();
             }
 
@@ -537,13 +580,13 @@
             let totalToPay = finalValue * 1000;
 
             qrisAmountEl.innerText = formatRupiah(totalToPay);
-            
+
             const qrisImageEl = document.getElementById('qris-image');
-            
+
             // Hitung QRIS dinamis secara offline di client-side!
             let qrisFinal = generateQRISDinamis(totalToPay);
             let qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' + encodeURIComponent(qrisFinal);
-            
+
             qrisImageEl.src = qrUrl;
 
             modal.classList.add('show');
@@ -584,7 +627,7 @@
                 `;
                 const blob = new Blob([swCode], { type: 'application/javascript' });
                 const swUrl = URL.createObjectURL(blob);
-                
+
                 navigator.serviceWorker.register(swUrl).then(registration => {
                     console.log('Mode Offline Aktif (SW Registered)');
                 }).catch(err => {
@@ -592,6 +635,19 @@
                 });
             });
         }
+
+        // --- Fitur Auto Fullscreen (Pada interaksi pertama) ---
+        function enterFullScreen() {
+            if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen().catch(e => console.log(e));
+            }
+            // Hapus event listener setelah interaksi pertama
+            document.removeEventListener('touchstart', enterFullScreen);
+            document.removeEventListener('click', enterFullScreen);
+        }
+        document.addEventListener('touchstart', enterFullScreen);
+        document.addEventListener('click', enterFullScreen);
     </script>
 </body>
+
 </html>
