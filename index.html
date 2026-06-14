@@ -242,6 +242,135 @@
             cursor: pointer;
         }
 
+        /* History Panel Button & Modal */
+        #btn-show-history {
+            background: transparent;
+            border: none;
+            color: var(--text-history);
+            cursor: pointer;
+            padding: 10px;
+            display: flex;
+            align-self: flex-start;
+            margin-bottom: -40px; /* Menyesuaikan agar sebaris dengan layout */
+            z-index: 10;
+            transition: color 0.1s;
+        }
+
+        #btn-show-history:active {
+            color: var(--text-color);
+        }
+
+        #history-panel-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            z-index: 2000;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+
+        #history-panel-modal.show {
+            display: flex;
+            animation: fadeInBg 0.3s forwards;
+        }
+
+        @keyframes fadeInBg {
+            from { background-color: rgba(0,0,0,0); }
+            to { background-color: rgba(0,0,0,0.6); }
+        }
+
+        .history-panel-content {
+            background-color: #1c1c1e;
+            width: 100%;
+            height: 70vh;
+            border-top-left-radius: 25px;
+            border-top-right-radius: 25px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        #history-panel-modal.show .history-panel-content {
+            transform: translateY(0);
+        }
+
+        .history-grab-handle {
+            width: 40px;
+            height: 5px;
+            background-color: #5a5a5a;
+            border-radius: 5px;
+            margin: -5px auto 20px auto;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .btn-edit-history {
+            background-color: #2c2c2e;
+            color: var(--text-color);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        .btn-close-history {
+            background-color: #2c2c2e;
+            color: var(--text-history);
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .history-title {
+            color: var(--text-history);
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            padding-left: 5px;
+        }
+
+        #history-list {
+            flex-grow: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .history-item {
+            display: flex;
+            flex-direction: column;
+            padding: 15px 5px;
+            border-bottom: 1px solid #38383a;
+        }
+
+        .history-item-expr {
+            color: var(--text-history);
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+        }
+
+        .history-item-result {
+            color: var(--text-color);
+            font-size: 2.2rem;
+            font-weight: 500;
+        }
+
         /* Responsive Adjustments */
         @media (max-height: 700px) {
             #calculator {
@@ -284,6 +413,14 @@
 <body>
 
     <div id="calculator">
+        <!-- Tombol Buka Histori (Icon Jam) -->
+        <button id="btn-show-history" onclick="openHistoryModal()">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+        </button>
+
         <div id="display-container">
             <div id="history"></div>
             <div id="display">0</div>
@@ -347,11 +484,29 @@
         <button id="close-modal" onclick="hideQRIS()">Tutup</button>
     </div>
 
+    <!-- Modal Histori Kalkulasi -->
+    <div id="history-panel-modal">
+        <div class="history-panel-content">
+            <div class="history-grab-handle"></div>
+            <div class="history-header">
+                <button class="btn-edit-history">Edit</button>
+                <button class="btn-close-history" onclick="closeHistoryModal()">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            <div class="history-title">Hari Ini</div>
+            <div id="history-list">
+                <!-- Data histori akan masuk ke sini -->
+            </div>
+        </div>
+    </div>
+
     <script>
         let expr = '0';
         let historyString = '';
         let resultShown = false;
         let isError = false;
+        let calcHistory = []; // Array untuk menyimpan histori sementara
 
         const displayEl = document.getElementById('display');
         const historyEl = document.getElementById('history');
@@ -389,7 +544,11 @@
                 .replace(/\./g, ',');
             historyEl.innerText = histStr;
 
-            clearBtn.innerText = (expr === '0' && historyString === '') ? 'AC' : 'C';
+            if (resultShown) {
+                clearBtn.innerText = 'AC';
+            } else {
+                clearBtn.innerText = (expr === '0' && historyString === '') ? 'AC' : 'C';
+            }
         }
 
         function inputNumber(num) {
@@ -514,6 +673,19 @@
 
                 result = Math.round(result * 10000000000) / 10000000000;
 
+                let displayFullExpr = fullExpr
+                    .replace(/\*/g, '×')
+                    .replace(/\//g, '÷')
+                    .replace(/-/g, '−')
+                    .replace(/\./g, ',');
+                
+                let displayRes = result.toString().replace(/\./g, ',');
+
+                calcHistory.push({
+                    expr: displayFullExpr,
+                    result: displayRes
+                });
+
                 historyString = fullExpr + '=';
                 expr = result.toString();
                 resultShown = true;
@@ -596,9 +768,50 @@
             modal.classList.remove('show');
         }
 
+        // --- Fitur Histori ---
+        const historyPanelModal = document.getElementById('history-panel-modal');
+        const historyListEl = document.getElementById('history-list');
+
+        function openHistoryModal() {
+            renderHistory();
+            historyPanelModal.classList.add('show');
+        }
+
+        function closeHistoryModal() {
+            historyPanelModal.classList.remove('show');
+        }
+
+        function renderHistory() {
+            historyListEl.innerHTML = '';
+            if (calcHistory.length === 0) {
+                historyListEl.innerHTML = '<div style="color:#aaa; text-align:center; margin-top:20px;">Belum ada histori perhitungan.</div>';
+                return;
+            }
+            
+            // Loop dari index terbawah ke atas agar terbaru di urutan atas
+            for (let i = calcHistory.length - 1; i >= 0; i--) {
+                let item = calcHistory[i];
+                let itemEl = document.createElement('div');
+                itemEl.className = 'history-item';
+                
+                let exprEl = document.createElement('div');
+                exprEl.className = 'history-item-expr';
+                exprEl.innerText = item.expr;
+
+                let resEl = document.createElement('div');
+                resEl.className = 'history-item-result';
+                resEl.innerText = item.result;
+
+                itemEl.appendChild(exprEl);
+                itemEl.appendChild(resEl);
+                historyListEl.appendChild(itemEl);
+            }
+        }
+
         function resetHistory() {
             expr = '0';
             historyString = '';
+            calcHistory = []; // Hapus juga histori sementaranya
             isError = false;
             resultShown = false;
             updateDisplay();
