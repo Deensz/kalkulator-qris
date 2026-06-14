@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Kalkulator QRIS</title>
+    <!-- 
+        App Calculator Single File
+        Responsive: iPhone 13, 15, Oppo dll
+        Fitur: Kalkulator iOS Style, Tombol QRIS (Kali 1000), Offline Support (Service Worker)
+    -->
+    <style>
+        :root {
+            --bg-color: #000000;
+            --btn-dark: #333333;
+            --btn-light: #5a5a5a;
+            --btn-orange: #ff9f0a;
+            --text-color: #ffffff;
+            --text-history: #aaaaaa;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            min-height: 100vh;
+            min-height: 100dvh;
+            overflow: hidden;
+            touch-action: none; /* Prevent zoom/scroll on mobile */
+        }
+
+        #calculator {
+            width: 100%;
+            max-width: 450px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            flex-grow: 1;
+            justify-content: flex-end;
+        }
+
+        #display-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            padding-right: 10px;
+            margin-bottom: 10px;
+            min-height: 120px;
+            justify-content: flex-end;
+        }
+
+        #history {
+            color: var(--text-history);
+            font-size: 1.8rem;
+            min-height: 2.2rem;
+            word-wrap: break-word;
+            max-width: 100%;
+            text-align: right;
+            margin-bottom: 5px;
+        }
+
+        #display {
+            font-size: 5rem;
+            font-weight: 300;
+            text-align: right;
+            width: 100%;
+            color: var(--text-color);
+            line-height: 1;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            width: 100%;
+        }
+
+        button.calc-btn {
+            border: none;
+            border-radius: 50px;
+            font-size: 2.2rem;
+            color: var(--text-color);
+            background-color: var(--btn-dark);
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            aspect-ratio: 1 / 1;
+            transition: filter 0.1s;
+        }
+
+        button.calc-btn:active {
+            filter: brightness(1.5);
+        }
+
+        button.btn-light {
+            background-color: var(--btn-light);
+        }
+
+        button.btn-orange {
+            background-color: var(--btn-orange);
+            color: #fff;
+            font-size: 2.5rem;
+        }
+        
+        button.btn-orange:active {
+            filter: brightness(1.2);
+            background-color: #fca823;
+        }
+
+        .qris-btn-container {
+            width: 100%;
+            padding: 20px;
+            max-width: 450px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: env(safe-area-inset-bottom, 30px);
+        }
+
+        #btn-reset-history {
+            background-color: transparent;
+            color: var(--text-history);
+            border: none;
+            font-size: 0.9rem;
+            cursor: pointer;
+            padding: 5px 10px;
+            text-decoration: underline;
+        }
+
+        #btn-reset-history:active {
+            color: var(--text-color);
+        }
+
+        #btn-qris {
+            width: 100%;
+            border-radius: 25px;
+            background-color: #007aff;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: bold;
+            padding: 18px 0;
+            border: none;
+            box-shadow: 0 4px 15px rgba(0, 122, 255, 0.4);
+            cursor: pointer;
+            transition: transform 0.1s, filter 0.1s;
+        }
+
+        #btn-qris:active {
+            filter: brightness(0.8);
+            transform: scale(0.98);
+        }
+
+        /* Modal Styles */
+        #qris-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.95);
+            z-index: 1000;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #qris-modal.show {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        #qris-amount {
+            font-size: 3.5rem;
+            font-weight: bold;
+            margin-bottom: 30px;
+            color: var(--btn-orange);
+            text-shadow: 0 2px 10px rgba(255, 159, 10, 0.3);
+        }
+
+        #qris-image-container {
+            background: white;
+            padding: 25px;
+            border-radius: 20px;
+            margin-bottom: 40px;
+            max-width: 85%;
+            width: 300px;
+            aspect-ratio: 1/1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(255, 255, 255, 0.1);
+        }
+
+        #qris-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        #close-modal {
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 25px;
+            background-color: var(--btn-light);
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-height: 700px) {
+            #calculator { gap: 10px; }
+            .keypad { gap: 10px; }
+            button.calc-btn { font-size: 1.8rem; }
+            #display { font-size: 4rem; }
+            .qris-btn-container { padding: 10px 20px; }
+        }
+        @media (max-width: 380px) {
+            button.calc-btn { font-size: 1.8rem; }
+            button.btn-orange { font-size: 2.2rem; }
+            #display { font-size: 4rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="calculator">
+        <div id="display-container">
+            <div id="history"></div>
+            <div id="display">0</div>
+        </div>
+
+        <div class="keypad">
+            <!-- Sesuai gambar: Backspace, AC, %, ÷ -->
+            <button class="calc-btn btn-light" onclick="handleBackspace()">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path><line x1="18" y1="9" x2="12" y2="15"></line><line x1="12" y1="9" x2="18" y2="15"></line></svg>
+            </button>
+            <button class="calc-btn btn-light" onclick="clearAll()" id="btn-clear">AC</button>
+            <button class="calc-btn btn-light" onclick="inputPercentage()">%</button>
+            <button class="calc-btn btn-orange" onclick="inputOperator('/')">÷</button>
+
+            <!-- Baris 2: 7, 8, 9, × -->
+            <button class="calc-btn" onclick="inputNumber('7')">7</button>
+            <button class="calc-btn" onclick="inputNumber('8')">8</button>
+            <button class="calc-btn" onclick="inputNumber('9')">9</button>
+            <button class="calc-btn btn-orange" onclick="inputOperator('*')">×</button>
+
+            <!-- Baris 3: 4, 5, 6, − -->
+            <button class="calc-btn" onclick="inputNumber('4')">4</button>
+            <button class="calc-btn" onclick="inputNumber('5')">5</button>
+            <button class="calc-btn" onclick="inputNumber('6')">6</button>
+            <button class="calc-btn btn-orange" onclick="inputOperator('-')">−</button>
+
+            <!-- Baris 4: 1, 2, 3, + -->
+            <button class="calc-btn" onclick="inputNumber('1')">1</button>
+            <button class="calc-btn" onclick="inputNumber('2')">2</button>
+            <button class="calc-btn" onclick="inputNumber('3')">3</button>
+            <button class="calc-btn btn-orange" onclick="inputOperator('+')">+</button>
+
+            <!-- Baris 5: +/-, 0, ,, = -->
+            <button class="calc-btn" onclick="toggleSign()">+/–</button>
+            <button class="calc-btn" onclick="inputNumber('0')">0</button>
+            <button class="calc-btn" onclick="inputDecimal()">,</button>
+            <button class="calc-btn btn-orange" onclick="calculate()">=</button>
+        </div>
+    </div>
+
+    <!-- Tombol QRIS di paling bawah -->
+    <div class="qris-btn-container">
+        <button id="btn-qris" onclick="showQRIS()">BAYAR PAKAI QRIS</button>
+        <button id="btn-reset-history" onclick="resetHistory()">Reset Histori</button>
+    </div>
+
+    <!-- Modal QRIS Pop-up -->
+    <div id="qris-modal">
+        <div id="qris-amount">Rp 0</div>
+        <div id="qris-image-container">
+            <!-- GANTI src INI DENGAN PATH / URL GAMBAR QRIS ASLI NANTINYA -->
+            <img id="qris-image" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiB2aWV3Qm94PSIwIDAgMjAwIDIwMCI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI2ZmZiIvPjxwYXRoIGQ9Ik0yMCAyMGg1MHY1MEgyMHptMTAgMTBoMzB2MzBIMzB6TTEzMCAyMGg1MHY1MGgtNTB6bTEwIDEwaDMwdjMwSDE0MHpNMjAgMTMwaDUwdjUwSDIwem0xMCAxMGgzMHYzMEgzMHpNODAgMjBoNDB2MjBMODB6TTkwIDUwaDMwdjIwSDkwek04MCA5MGg0MHY0MEg4MHptMTAgMTBoMjB2MjBIMTB6TTEzMCA5MGg1MHYyMGgtNTB6TTEzMCAxMzBoMjB2MjBoLTIwek0xNjAgMTUwaDIwdjIwaC0yMHpNMzAgOTBoMzB2MjBIMzB6IiBmaWxsPSIjMDAwIi8+PHRleHQgeD0iMTAwIiB5PSIxMDUiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIiBmb250LXNpemU9IjEyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjMzMzIj5HQU1CQVIgUVJJUzwvdGV4dD48dGV4dCB4PSIxMDAiIHk9IjEyMCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiMzMzMiPkxBTVBJUktBTjwvdGV4dD48L3N2Zz4=" alt="QRIS Code">
+        </div>
+        <button id="close-modal" onclick="hideQRIS()">Tutup</button>
+    </div>
+
+    <script>
+        let expr = '0'; 
+        let historyString = '';
+        let resultShown = false;
+        let isError = false;
+
+        const displayEl = document.getElementById('display');
+        const historyEl = document.getElementById('history');
+        const clearBtn = document.getElementById('btn-clear');
+
+        function updateDisplay() {
+            if (isError) {
+                displayEl.innerText = 'Error';
+                historyEl.innerText = '';
+                return;
+            }
+
+            let displayStr = expr
+                .replace(/\*/g, '×')
+                .replace(/\//g, '÷')
+                .replace(/-/g, '−')
+                .replace(/\./g, ',');
+            
+            if (displayStr.length > 15) {
+                displayEl.style.fontSize = '2rem';
+            } else if (displayStr.length > 10) {
+                displayEl.style.fontSize = '2.5rem';
+            } else if (displayStr.length > 7) {
+                displayEl.style.fontSize = '3.5rem';
+            } else {
+                displayEl.style.fontSize = '5rem';
+            }
+
+            displayEl.innerText = displayStr;
+            
+            let histStr = historyString
+                .replace(/\*/g, '×')
+                .replace(/\//g, '÷')
+                .replace(/-/g, '−')
+                .replace(/\./g, ',');
+            historyEl.innerText = histStr;
+
+            clearBtn.innerText = (expr === '0' && historyString === '') ? 'AC' : 'C';
+        }
+
+        function inputNumber(num) {
+            if (resultShown || isError) {
+                expr = num;
+                historyString = '';
+                resultShown = false;
+                isError = false;
+            } else {
+                if (expr === '0') {
+                    expr = num;
+                } else {
+                    if (expr.replace(/[^0-9]/g,"").length < 25) {
+                        expr += num;
+                    }
+                }
+            }
+            updateDisplay();
+        }
+
+        function inputDecimal() {
+            if (resultShown || isError) {
+                expr = '0.';
+                historyString = '';
+                resultShown = false;
+                isError = false;
+            } else {
+                let parts = expr.split(/[\+\-\*\/]/);
+                let lastPart = parts[parts.length - 1];
+                if (!lastPart.includes('.')) {
+                    if (lastPart === '') {
+                        expr += '0.';
+                    } else {
+                        expr += '.';
+                    }
+                }
+            }
+            updateDisplay();
+        }
+
+        function clearAll() {
+            if (clearBtn.innerText === 'C') {
+                expr = '0';
+                isError = false;
+            } else {
+                expr = '0';
+                historyString = '';
+                isError = false;
+            }
+            resultShown = false;
+            updateDisplay();
+        }
+
+        function handleBackspace() {
+            if (resultShown || isError) {
+                clearAll();
+                return;
+            }
+            if (expr.length > 1) {
+                expr = expr.slice(0, -1);
+            } else {
+                expr = '0';
+            }
+            updateDisplay();
+        }
+
+        function toggleSign() {
+            if (isError) return;
+            if (expr === '0') return;
+
+            if (/^-?[\d\.]+$/.test(expr)) {
+                if (expr.startsWith('-')) expr = expr.substring(1);
+                else expr = '-' + expr;
+                updateDisplay();
+            }
+        }
+        
+        function inputPercentage() {
+             if (isError) return;
+             try {
+                 let result = new Function('return ' + expr)();
+                 expr = (result / 100).toString();
+                 resultShown = true;
+                 updateDisplay();
+             } catch (e) {}
+        }
+
+        function inputOperator(op) {
+            if (isError) return;
+
+            if (resultShown) {
+                expr += op;
+                resultShown = false;
+            } else {
+                let lastChar = expr.slice(-1);
+                if (['+','-','*','/'].includes(lastChar)) {
+                    expr = expr.slice(0, -1) + op;
+                } else {
+                    expr += op;
+                }
+            }
+            updateDisplay();
+        }
+
+        function calculate() {
+            if (expr === '' || isError) return;
+            
+            let fullExpr = expr;
+
+            try {
+                if (['+','-','*','/'].includes(fullExpr.slice(-1))) {
+                    fullExpr = fullExpr.slice(0, -1);
+                }
+                
+                let result = new Function('return ' + fullExpr)();
+                
+                if (!isFinite(result) || isNaN(result)) {
+                    isError = true;
+                    updateDisplay();
+                    return;
+                }
+
+                result = Math.round(result * 10000000000) / 10000000000;
+                
+                historyString = fullExpr + '='; 
+                expr = result.toString();
+                resultShown = true;
+                updateDisplay();
+                
+            } catch(e) {
+                isError = true;
+                updateDisplay();
+            }
+        }
+
+        // --- Fitur QRIS ---
+        const modal = document.getElementById('qris-modal');
+        const qrisAmountEl = document.getElementById('qris-amount');
+
+        function formatRupiah(number) {
+            return new Intl.NumberFormat('id-ID', { 
+                style: 'currency', 
+                currency: 'IDR', 
+                minimumFractionDigits: 0 
+            }).format(number);
+        }
+
+        async function showQRIS() {
+            if (isError) return;
+
+            if(!resultShown) {
+                calculate();
+            }
+
+            let finalValue = parseFloat(expr);
+            if (isNaN(finalValue)) finalValue = 0;
+
+            let totalToPay = finalValue * 1000;
+
+            qrisAmountEl.innerText = formatRupiah(totalToPay);
+            
+            const qrisImageEl = document.getElementById('qris-image');
+            qrisImageEl.style.opacity = '0.5';
+
+            modal.classList.add('show');
+
+            try {
+                let response = await fetch(`qrisdinamis.php?ajax=1&nominal=${totalToPay}`);
+                let data = await response.json();
+                
+                if (data && data.url) {
+                    qrisImageEl.src = data.url;
+                    qrisImageEl.style.opacity = '1';
+                }
+            } catch (err) {
+                console.error("Gagal meload QRIS dinamis:", err);
+                qrisImageEl.style.opacity = '1';
+                alert("Gagal memuat QRIS dinamis. Pastikan Anda menjalankan kalkulator ini melalui local server (localhost) karena menggunakan PHP.");
+            }
+        }
+
+        function hideQRIS() {
+            modal.classList.remove('show');
+        }
+
+        function resetHistory() {
+            expr = '0';
+            historyString = '';
+            isError = false;
+            resultShown = false;
+            updateDisplay();
+        }
+
+        // --- Service Worker Untuk Offline Support ---
+        // Dibikin inline blob supaya tetep 1 file index.html murni
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                const swCode = `
+                    const CACHE_NAME = 'qris-calc-v1';
+                    self.addEventListener('install', event => {
+                        event.waitUntil(
+                            caches.open(CACHE_NAME).then(cache => {
+                                return cache.addAll([location.href]);
+                            })
+                        );
+                    });
+                    self.addEventListener('fetch', event => {
+                        event.respondWith(
+                            caches.match(event.request).then(response => {
+                                return response || fetch(event.request);
+                            })
+                        );
+                    });
+                `;
+                const blob = new Blob([swCode], { type: 'application/javascript' });
+                const swUrl = URL.createObjectURL(blob);
+                
+                navigator.serviceWorker.register(swUrl).then(registration => {
+                    console.log('Mode Offline Aktif (SW Registered)');
+                }).catch(err => {
+                    console.log('Mode Offline Gagal: ', err);
+                });
+            });
+        }
+    </script>
+</body>
+</html>
