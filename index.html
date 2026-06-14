@@ -494,7 +494,37 @@
             }).format(number);
         }
 
-        async function showQRIS() {
+        function generateQRISDinamis(nominal) {
+            let qrisStatis = "00020101021126650013ID.CO.BCA.WWW011893600014000281005202150008850028100520303UMI51440014ID.CO.QRIS.WWW0215ID10253738323320303UMI5204581453033605802ID5912JAJANAN RATU6006MALANG61056513762070703A0163043788";
+            let qrisTanpaCrc = qrisStatis.slice(0, -4);
+            let qrisDinamis = qrisTanpaCrc.replace("010211", "010212");
+            
+            let nominalStr = nominal.toString();
+            let panjangNominalStr = nominalStr.length.toString().padStart(2, '0');
+            let tag54 = "54" + panjangNominalStr + nominalStr;
+            
+            let posisi58 = qrisDinamis.indexOf("5802ID");
+            if (posisi58 !== -1) {
+                qrisDinamis = qrisDinamis.slice(0, posisi58) + tag54 + qrisDinamis.slice(posisi58);
+            }
+            
+            let crc = 0xFFFF;
+            for (let c = 0; c < qrisDinamis.length; c++) {
+                crc ^= qrisDinamis.charCodeAt(c) << 8;
+                for (let i = 0; i < 8; i++) {
+                    if (crc & 0x8000) {
+                        crc = (crc << 1) ^ 0x1021;
+                    } else {
+                        crc = crc << 1;
+                    }
+                }
+            }
+            crc = crc & 0xFFFF;
+            let crcHex = crc.toString(16).toUpperCase().padStart(4, '0');
+            return qrisDinamis + crcHex;
+        }
+
+        function showQRIS() {
             if (isError) return;
 
             if(!resultShown) {
@@ -509,23 +539,14 @@
             qrisAmountEl.innerText = formatRupiah(totalToPay);
             
             const qrisImageEl = document.getElementById('qris-image');
-            qrisImageEl.style.opacity = '0.5';
+            
+            // Hitung QRIS dinamis secara offline di client-side!
+            let qrisFinal = generateQRISDinamis(totalToPay);
+            let qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' + encodeURIComponent(qrisFinal);
+            
+            qrisImageEl.src = qrUrl;
 
             modal.classList.add('show');
-
-            try {
-                let response = await fetch(`qrisdinamis.php?ajax=1&nominal=${totalToPay}`);
-                let data = await response.json();
-                
-                if (data && data.url) {
-                    qrisImageEl.src = data.url;
-                    qrisImageEl.style.opacity = '1';
-                }
-            } catch (err) {
-                console.error("Gagal meload QRIS dinamis:", err);
-                qrisImageEl.style.opacity = '1';
-                alert("Gagal memuat QRIS dinamis. Pastikan Anda menjalankan kalkulator ini melalui local server (localhost) karena menggunakan PHP.");
-            }
         }
 
         function hideQRIS() {
